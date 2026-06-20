@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loki CLI - Complete Documentation</title>
+<link rel="stylesheet" href="res.style.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav id="sidebar">
+  <div class="logo">
+    <span class="logo-icon">&#128013;</span>
+    <span class="logo-text">Loki CLI Docs</span>
+  </div>
+  <div class="nav-links">
+    <a href="#overview" class="nav-link active">Overview</a>
+    <a href="#architecture" class="nav-link">Architecture</a>
+    <a href="#commands" class="nav-link">Commands</a>
+    <a href="#core" class="nav-link">Core Module</a>
+    <a href="#security" class="nav-link">Security Layer</a>
+    <a href="#ai" class="nav-link">AI Engine</a>
+    <a href="#providers" class="nav-link">AI Providers</a>
+    <a href="#rag" class="nav-link">RAG Engine</a>
+    <a href="#webui" class="nav-link">Web UI</a>
+    <a href="#frontend" class="nav-link">Frontend Code</a>
+    <a href="#cicd" class="nav-link">CI/CD</a>
+    <a href="#tests" class="nav-link">Tests</a>
+    <a href="#bugs" class="nav-link">Bug Fixes</a>
+    <a href="#dependencies" class="nav-link">Dependencies</a>
+    <a href="#files" class="nav-link">All Files</a>
+  </div>
+</nav>
+
+<main id="content">
+
+<!-- ==================== OVERVIEW ==================== -->
+<section id="overview">
+  <h1>Loki CLI - Complete Project Documentation</h1>
+  <p class="subtitle">AI-Powered Code Analysis CLI with Error Detection, RAG Chat, and Web UI</p>
+
+  <div class="stats-grid">
+    <div class="stat-card"><span class="stat-num">35</span><span class="stat-label">Python Files</span></div>
+    <div class="stat-card"><span class="stat-num">11</span><span class="stat-label">CLI Commands</span></div>
+    <div class="stat-card"><span class="stat-num">18+</span><span class="stat-label">Languages</span></div>
+    <div class="stat-card"><span class="stat-num">5</span><span class="stat-label">Security Layers</span></div>
+    <div class="stat-card"><span class="stat-num">4</span><span class="stat-label">AI Providers</span></div>
+    <div class="stat-card"><span class="stat-num">124</span><span class="stat-label">RAG Chunks</span></div>
+  </div>
+
+  <div class="card">
+    <h2>What is Loki?</h2>
+    <p>Loki CLI is a zero-cost, local-only AI code analysis tool. It scans entire multi-language codebases, detects errors using language-specific linters and AST parsing, builds a FAISS vector index for RAG-powered chat, captures runtime errors from any process, and provides AI-powered explanations and auto-fixes. Everything runs on the user's machine with encrypted cache and OS keychain API key storage.</p>
+  </div>
+
+  <div class="card">
+    <h2>Quick Start</h2>
+    <pre><code># Install
+pip install -e D:\pro-2
+
+# Set up AI provider (Groq - free)
+loki models groq
+# Paste your API key when prompted
+
+# Scan your project
+cd my-project
+loki init
+
+# See errors
+loki errors
+
+# Fix errors with AI
+loki fix
+
+# Chat with AI about your code
+loki ai
+
+# Capture runtime errors from any process
+loki capture python my_script.py
+
+# Open web UI
+loki show
+
+# Clean up when done
+loki exit</code></pre>
+  </div>
+</section>
+
+<!-- ==================== ARCHITECTURE ==================== -->
+<section id="architecture">
+  <h1>System Architecture</h1>
+  <div class="card">
+    <h2>Module Diagram</h2>
+    <pre><code>loki-cli/
+├── loki/
+│   ├── cli.py                    # Click CLI entry point
+│   ├── core/
+│   │   ├── types.py              # Data structures (enums, dataclasses)
+│   │   ├── scanner.py            # File scanner for ALL languages
+│   │   ├── errors.py             # Multi-language error detection
+│   │   ├── cache.py              # Encrypted cache manager
+│   │   ├── config.py             # User config (~/.loki/config.json)
+│   │   ├── runtime_capture.py    # Runtime error capture hooks
+│   │   └── global_hook.py        # Global exception hook
+│   ├── security/
+│   │   ├── secret_manager.py     # OS keychain API key storage
+│   │   ├── cache_security.py     # Fernet encryption for cache
+│   │   ├── secure_delete.py      # 3-pass secure file deletion
+│   │   ├── leak_prevention.py    # API key/token redaction
+│   │   └── integrity.py          # Package integrity verification
+│   ├── ai/
+│   │   ├── rag.py                # FAISS + sentence-transformers RAG
+│   │   ├── chat.py               # Chat session with context injection
+│   │   ├── guardrails.py         # Prompt injection + leak prevention
+│   │   └── providers/
+│   │       ├── base.py           # Abstract AI provider interface
+│   │       ├── groq.py           # Groq API (free tier)
+│   │       ├── openai_provider.py # OpenAI API
+│   │       ├── anthropic.py      # Anthropic API
+│   │       └── openrouter.py     # OpenRouter API
+│   ├── commands/
+│   │   ├── init_cmd.py           # loki init
+│   │   ├── errors_cmd.py         # loki errors
+│   │   ├── describe_cmd.py       # loki describe
+│   │   ├── ai_cmd.py             # loki ai
+│   │   ├── exit_cmd.py           # loki exit
+│   │   ├── fix_cmd.py            # loki fix
+│   │   ├── watch_cmd.py          # loki watch
+│   │   ├── report_cmd.py         # loki report
+│   │   ├── models_cmd.py         # loki models
+│   │   ├── capture_cmd.py        # loki capture
+│   │   └── inject_cmd.py         # loki inject
+│   └── ui/
+│       ├── server.py             # FastAPI web server
+│       ├── routes.py             # API endpoints
+│       ├── security.py           # Rate limiter + input sanitizer
+│       └── static/
+│           ├── index.html        # Web UI HTML
+│           ├── style.css         # Dark theme CSS
+│           └── app.js            # Frontend JavaScript
+├── tests/                        # Test suite
+├── .github/workflows/            # CI/CD pipelines
+├── pyproject.toml                # Package config
+└── res.index.html                # This documentation</code></pre>
+  </div>
+
+  <div class="card">
+    <h2>Data Flow</h2>
+    <pre><code>User runs `loki init`
+        │
+        ▼
+┌─────────────────┐
+│  FileScanner     │  Walks directory, identifies 18+ languages
+│  (scanner.py)    │  Computes SHA256 hashes per file
+└────────┬────────┘
+         │ ScanResult (files[], structure{})
+         ▼
+┌─────────────────┐
+│  ErrorDetector   │  AST parsing (Python), subprocess calls
+│  (errors.py)     │  to node/rustc/gcc/javac/go + linters
+└────────┬────────┘
+         │ Error[] (file, line, severity, code, message)
+         ▼
+┌─────────────────┐
+│  RAGEngine       │  Chunks code → sentence-transformers → FAISS
+│  (rag.py)        │  Saves index.faiss + chunks.json to cache
+└────────┬────────┘
+         │ Vector index built
+         ▼
+┌─────────────────┐
+│  CacheManager    │  Encrypts with Fernet → ~/.loki/{hash}/
+│  (cache.py)      │  API keys in OS keychain via keyring
+└─────────────────┘
+         │
+         ▼
+   User runs `loki ai` or opens `loki show`
+         │
+         ▼
+┌─────────────────┐
+│  ChatSession     │  Query → FAISS search → relevant chunks
+│  (chat.py)       │  + error context → AI provider → response
+└─────────────────┘</code></pre>
+  </div>
+</section>
+
+<!-- ==================== COMMANDS ==================== -->
+<section id="commands">
+  <h1>CLI Commands - Detailed</h1>
+
+  <div class="cmd-card">
+    <h2><span class="cmd-name">loki init</span> <span class="cmd-file">init_cmd.py</span></h2>
+    <p><strong>What it does:</strong> Scans the entire codebase, detects errors across all languages, loads runtime errors, builds the FAISS RAG index, and saves everything to encrypted cache.</p>
+    <p><strong>Functions used:</strong></p>
+    <ul>
+      <li><code>FileScanner.scan()</code> - Walks directory tree, identifies files by extension (35 extensions across 18 languages), computes SHA256 hashes, returns ScanResult</li>
+      <li><code>ErrorDetector.detect_all()</code> - Runs AST parsing + subprocess calls to linters (pylint, mypy, eslint, flake8) and compilers (node, rustc, gcc, javac, go vet)</li>
+      <li><code>get_runtime_errors()</code> - Loads previously captured runtime errors from runtime_errors.json</li>
+      <li><code>RAGEngine.chunk_code()</code> - Splits code into 50-line chunks with 10-line overlap</li>
+      <li><code>RAGEngine.build_index()</code> - Encodes chunks with sentence-transformers, builds FAISS IndexFlatL2, saves to disk</li>
+      <li><code>CacheManager.save_scan()</code> - Serializes ScanResult to JSON, encrypts with Fernet, saves to ~/.loki/{hash}/</li>
+      <li><code>CacheManager.save_errors()</code> - Serializes Error list to JSON, encrypts, saves</li>
+    </ul>
+    <p><strong>Why each step:</strong> Scanning identifies what code exists. Error detection finds bugs. RAG indexing enables AI to understand the code. Encryption protects the cache.</p>
+  </div>
+
+  <div class="cmd-card">
+    <h2><span class="cmd-name">loki errors</span> <span class="cmd-file">errors_cmd.py</span></h2>
+    <p><strong>What it does:</strong> Displays all cached errors in a formatted Rich table with severity, file location, line number, error code, message, and source linter.</p>
+    <p><strong>Functions used:</strong></p>
+    <ul>
+      <li><code>CacheManager.load_errors()</code> - Loads and decrypts errors.json, deserializes into Error objects</li>
+      <li><code>_get_severity()</code> - Extracts severity string from both dict and enum objects (handles cache serialization)</li>
+      <li><code>_get_attr()</code> - Safely gets attributes from both dict and dataclass objects</li>
+    </ul>
+    <p><strong>Bug fix:</strong> Rich markup error was caused by <code>f"[{style}]"</code> when style was empty string. Fixed by defaulting to "white" when severity is unrecognized.</p>
+  </div>
+
+  <div class="cmd-card">
+    <h2><span class="cmd-name">loki describe</span> <span class="cmd-file">describe_cmd.py</span></h2>
+    <p><strong>What it does:</strong> For each error, sends it to the AI provider for detailed explanation including: what the error means, why it occurs, and how to fix it. Renders output as Markdown.</p>
+    <p><strong>Functions used:</strong></p>
+    <ul>
+      <li><code>AIProvider.chat()</code> - Sends error details to AI with system prompt</li>
+      <li><code>Rich Markdown()</code> - Renders AI response as formatted Markdown</li>
+    </ul>
+  </div>
+
+  <div class="cmd-card">
+    <h2><span class="cmd-name">loki ai</span> <span class="cmd-file">ai_cmd.py</span></h2>
+    <p><strong>What it does:</strong> Interactive chat session with the AI. AI has full context of your code (via RAG) and all detected errors.</p>
+    <p><strong>Functions used:</strong></p>
+    <ul>
+      <li><code>RAGEngine.query()</code> - FAISS vector search for relevant code chunks</li>
+      <li><code>ChatSession.send()</code> - Validates input → sanitizes → retrieves RAG context → adds error context → sends to AI → validates output</li>
+      <li><code>AIGuardrails.validate_input()</code> - Blocks prompt injection and forbidden topics</li>
+      <li><code>AIGuardrails.validate_output()</code> - Prevents training data leaks and system prompt exposure</li>
+      <li><code>LeakPrevention.sanitize_for_ai()</code> - Strips env vars and sensitive data before sending to AI</li>
+    </ul>
+  </div>
+
+  <div class="cmd-card">
+    <h2><span class="cmd-name">loki fix</span> <span class="cmd-file">fix_cmd.py</span></h2>
+    <p><strong>What it does:</strong> AI-powered auto-fix. Sends each fixable error to AI, extracts the suggested code fix, and optionally applies it to the file with user confirmation.</p>
+    <p><strong>Functions used:</strong></p>
+    <ul>
+      <li><code>_extract_code_from_response()</code> - Uses regex <code>r'```(?:\w+)?\n(.*?)```'</code> to extract code blocks from AI response</li>
+      <li><code>_apply_fix_to_file()</code> - Reads file, replaces the error line with the AI suggestion, writes back</li>
+      <li><code>_is_fixable()</code> - Checks if error's fixable flag is True (handles both bool and string)</li>
+    </ul>
+    <p><strong>Bug fix:</strong> Code extraction originally only matched Python code blocks. Fixed regex to match any language: <code>r'```(?:\w+)?\n(.*?)```'</code></p>
+  </div>
+
+  <div class="cmd-card">
+    <h2><span class="cmd-name">loki watch</span> <span class="cmd-file">watch_cmd.py</span></h2>
+    <p><strong>What it does:</strong> Monitors filesystem for changes using watchdog. When tracked files are modified, automatically re-runs <code>loki init</code>.</p>
+    <p><strong>Functions used:</strong></p>
+    <ul>
+      <li><code>watchdog.Observer()</code> - OS-level filesystem watcher</li>
+      <li><code>ChangeHandler.on_modified()</code> - Callback that triggers re-scan when files change</li>
+    </ul>
+  </div>
+
+  <div class="cmd-card">
+    <h2><span class="cmd-name">loki report</span> <span class="cmd-file">report_cmd.py</span></h2>
+    <p><strong>What it does:</strong> Generates a Markdown report with summary stats, errors grouped by severity, errors grouped by file, and full error details.</p>
+    <p><strong>Functions used:</strong></p>
+    <ul>
+      <li><code>collections.Counter</code> - Groups errors by severity and file</li>
+      <li><code>_get_severity()</code> / <code>_get_attr()</code> - Handles dict/enum data from cache</li>
+    </ul>
+    <p><strong>Bug fix:</strong> Original code used <code>e.severity.value</code> which fails when severity is a string. Fixed with <code>_get_severity()</code> helper.</p>
+  </div>
+
+  <div class="cmd-card">
+    <h2><span class="cmd-name">loki models</span> <span class="cmd-file">models_cmd.py</span></h2>
+    <p><strong>What it does:</strong> Lists all available AI providers (Groq, OpenAI, Anthropic, OpenRouter) with their models and configuration status. Can set the active provider and store API key in OS keychain.</p>
+    <p><strong>Functions used:</strong></p>
+    <ul>
+      <li><code>SecretManager.store_key()</code> - Stores API key in OS keychain via keyring</li>
+      <li><code>SecretManager.retrieve_key()</code> - Retrieves API key from keychain</li>
+      <li><code>ConfigManager.set_provider()</code> / <code>set_model()</code> - Saves preferences to config.json</li>
+    </ul>
+  </div>
+
+  <div class="cmd-card">
+    <h2><span class="cmd-name">loki capture</span> <span class="cmd-file">capture_cmd.py</span></h2>
+    <p><strong>What it does:</strong> Runs any command and monitors its stdout/stderr for error patterns. Works with ANY programming language. Uses 65+ regex patterns to detect errors from Python, JS, Rust, C, Java, Go, etc.</p>
+    <p><strong>Functions used:</strong></p>
+    <ul>
+      <li><code>subprocess.Popen()</code> - Spawns the target process</li>
+      <li><code>_monitor_stream()</code> - Reads stdout/stderr in separate threads</li>
+      <li><code>_is_error_line()</code> - Tests each line against 65+ regex patterns in ERROR_PATTERNS dict</li>
+      <li><code>_monitor_log_files()</code> - Watches log files for error patterns using watchdog</li>
+    </ul>
+    <p><strong>How error patterns work:</strong> Each pattern maps a language to regex: <code>{"python": ["Traceback", "Error:", ...], "javascript": ["TypeError:", "ReferenceError:", ...]}</code></p>
+  </div>
+
+  <div class="cmd-card">
+    <h2><span class="cmd-name">loki inject</span> <span class="cmd-file">inject_cmd.py</span></h2>
+    <p><strong>What it does:</strong> Prepends a Python exception hook into all Python files in a directory. When those files run and crash, the hook captures the error to the Loki cache.</p>
+    <p><strong>Functions used:</strong></p>
+    <ul>
+      <li><code>HOOK_CODE</code> - The injected Python snippet that sets up <code>sys.excepthook</code></li>
+      <li>File I/O to prepend hook code to each .py file</li>
+    </ul>
+  </div>
+
+  <div class="cmd-card">
+    <h2><span class="cmd-name">loki exit</span> <span class="cmd-file">exit_cmd.py</span></h2>
+    <p><strong>What it does:</strong> Securely deletes the project cache. Uses 3-pass overwriting with random data before unlinking files.</p>
+    <p><strong>Functions used:</strong></p>
+    <ul>
+      <li><code>SecureDeleter.secure_delete_dir()</code> - 3-pass secure deletion: overwrites with random data, then unlinks</li>
+      <li><code>CacheManager.clear()</code> - Deletes entire ~/.loki/{hash}/ directory</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ==================== CORE MODULE ==================== -->
+<section id="core">
+  <h1>Core Module - File by File</h1>
+
+  <div class="file-card">
+    <h3>core/types.py</h3>
+    <p><strong>Purpose:</strong> Defines ALL data structures used across the entire application. This is the foundation - every module imports from here.</p>
+    <p><strong>Classes:</strong></p>
+    <ul>
+      <li><code>Severity(Enum)</code> - ERROR, WARNING, INFO</li>
+      <li><code>Language(Enum)</code> - 18 languages: PYTHON, JAVASCRIPT, TYPESCRIPT, GO, RUST, C, CPP, JAVA, RUBY, PHP, SWIFT, KOTLIN, SCALA, ERLANG, HASKELL, LUA, R, OBJECTIVE_C, OBJECTIVE_CPP, UNKNOWN</li>
+      <li><code>FileMetadata</code> - path, hash, size, language, lines, last_modified</li>
+      <li><code>ScanResult</code> - project_hash, created_at, files[], structure{}</li>
+      <li><code>Error</code> - file, line, column, severity, code, message, source, fixable, suggestion</li>
+      <li><code>ErrorSummary</code> - total, errors, warnings, info</li>
+      <li><code>CodeChunk</code> - file_path, start_line, end_line, content, language</li>
+      <li><code>ChatMessage</code> - role, content, timestamp, context[]</li>
+      <li><code>CommandResult</code> - success, message, data{}, error</li>
+    </ul>
+    <p><strong>Why:</strong> Centralized types prevent import cycles and ensure consistency. Every module uses these same structures.</p>
+  </div>
+
+  <div class="file-card">
+    <h3>core/scanner.py</h3>
+    <p><strong>Purpose:</strong> Recursively walks a project directory, identifies files by extension across 18+ languages, computes SHA256 hashes, and produces a complete scan result.</p>
+    <p><strong>Key functions:</strong></p>
+    <ul>
+      <li><code>scan()</code> - Main entry point. Walks files, parses metadata, returns ScanResult</li>
+      <li><code>_walk_files()</code> - os.walk with ignore pattern filtering. Uses <code>fnmatch.fnmatch()</code> to check patterns</li>
+      <li><code>_parse_file()</code> - Reads file, counts lines, computes SHA256 hash with <code>hashlib.sha256()</code></li>
+      <li><code>_should_ignore()</code> - Checks against ignore patterns (node_modules, .git, __pycache__, etc.)</li>
+      <li><code>_find_entry_points()</code> - Identifies likely entry points (main.py, index.js, Cargo.toml, etc.)</li>
+      <li><code>_compute_project_hash()</code> - SHA256 hash of project path for cache directory naming</li>
+    </ul>
+    <p><strong>EXTENSION_MAP:</strong> Maps 35 file extensions to Language enum values. Example: <code>{".py": Language.PYTHON, ".js": Language.JAVASCRIPT, ".rs": Language.RUST, ...}</code></p>
+    <p><strong>ENTRY_POINTS:</strong> List of 27 common entry point filenames (main.py, index.js, Cargo.toml, etc.)</p>
+  </div>
+
+  <div class="file-card">
+    <h3>core/errors.py</h3>
+    <p><strong>Purpose:</strong> Multi-language error detection engine. Uses AST parsing for syntax errors and subprocess calls to linters/compilers for deeper analysis.</p>
+    <p><strong>Detection methods:</strong></p>
+    <ul>
+      <li><strong>Python:</strong> <code>ast.parse()</code> catches SyntaxError. <code>pylint --output-format=json</code> for style/errors. <code>mypy --output-json</code> for type errors. <code>flake8 --format=json</code> for linting.</li>
+      <li><strong>JavaScript/TypeScript:</strong> <code>node --check</code> for syntax. <code>npx eslint --format=json</code> for linting.</li>
+      <li><strong>Go:</strong> <code>go vet</code> for static analysis</li>
+      <li><strong>Rust:</strong> <code>rustc --edition 2021 --crate-type lib</code> for syntax checking</li>
+      <li><strong>C/C++:</strong> <code>gcc -fsyntax-only</code> / <code>g++ -fsyntax-only</code></li>
+      <li><strong>Java:</strong> <code>javac -version</code> for compilation errors</li>
+      <li><strong>Build systems:</strong> <code>make -n</code> for dry-run build errors</li>
+    </ul>
+    <p><strong>Error format:</strong> Each error becomes <code>Error(file, line, column, severity, code, message, source, fixable)</code></p>
+    <p><strong>Timeouts:</strong> Pylint: 60s, Mypy: 60s, ESLint: 30s, Flake8: 30s. Limited to 5 files per linter to avoid slowdowns.</p>
+  </div>
+
+  <div class="file-card">
+    <h3>core/cache.py</h3>
+    <p><strong>Purpose:</strong> Manages encrypted cache storage in <code>~/.loki/{project_hash}/</code>. All data is encrypted with Fernet before writing to disk.</p>
+    <p><strong>Functions:</strong></p>
+    <ul>
+      <li><code>save_scan(result)</code> - Uses <code>dataclasses.asdict()</code> to serialize, then <code>SecureCache.save_encrypted()</code></li>
+      <li><code>load_scan()</code> - Loads and decrypts, then reconstructs ScanResult from dict</li>
+      <li><code>save_errors(errors)</code> - Serializes Error list with asdict()</li>
+      <li><code>load_errors()</code> - Deserializes back to Error objects</li>
+      <li><code>is_stale()</code> - Checks if cache is older than SCAN_TTL (300 seconds)</li>
+      <li><code>exists()</code> - Checks if scan.json exists in cache</li>
+      <li><code>clear()</code> - Delegates to SecureDeleter for 3-pass secure deletion</li>
+    </ul>
+  </div>
+
+  <div class="file-card">
+    <h3>core/config.py</h3>
+    <p><strong>Purpose:</strong> Reads/writes <code>~/.loki/config.json</code> to persist user preferences.</p>
+    <p><strong>Stored settings:</strong> AI provider (groq/openai/anthropic/openrouter), model name, file extensions to scan, ignore patterns.</p>
+    <p><strong>Default config:</strong> <code>{"provider": "groq", "model": "llama-3.3-70b-versatile", "extensions": [".py", ".js", ...], "ignore": ["node_modules", ".git", ...]}</code></p>
+  </div>
+
+  <div class="file-card">
+    <h3>core/runtime_capture.py</h3>
+    <p><strong>Purpose:</strong> Captures runtime errors from Python processes by installing global exception hooks.</p>
+    <p><strong>Functions:</strong></p>
+    <ul>
+      <li><code>setup_runtime_capture(cache_dir)</code> - Replaces <code>sys.excepthook</code> and <code>threading.excepthook</code> with custom handlers</li>
+      <li><code>capture_exception(type, value, tb)</code> - Formats traceback, saves to runtime_errors.json</li>
+      <li><code>capture_console_error(msg)</code> - Captures console.print errors</li>
+      <li><code>get_runtime_errors()</code> - Loads all captured runtime errors</li>
+      <li><code>_save_runtime_error(error_data)</code> - Appends error to JSON file with timestamp</li>
+    </ul>
+    <p><strong>How it works:</strong> When Python raises an uncaught exception, <code>sys.excepthook</code> is called. Our hook intercepts it, formats the traceback with <code>traceback.format_exception()</code>, and saves it to disk.</p>
+  </div>
+
+  <div class="file-card">
+    <h3>core/global_hook.py</h3>
+    <p><strong>Purpose:</strong> Extended global exception hook with decorators and context managers for catching exceptions in any code.</p>
+    <p><strong>Key features:</strong></p>
+    <ul>
+      <li><code>init_hook(cache_dir)</code> - Installs the global exception hook</li>
+      <li><code>@catch_all</code> - Decorator that catches any exception in a function and logs it</li>
+      <li><code>@catch_all_async</code> - Same for async functions</li>
+      <li><code>ExceptionLogger()</code> - Context manager: <code>with ExceptionLogger(): ...</code></li>
+      <li><code>_patch_except()</code> - Patches sys.excepthook at a lower level than runtime_capture</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ==================== SECURITY ==================== -->
+<section id="security">
+  <h1>Security Layer - 5 Layers</h1>
+
+  <div class="file-card">
+    <h3>Layer 1: secret_manager.py - API Key Storage</h3>
+    <p><strong>Purpose:</strong> Stores API keys in the OS keychain (Windows Credential Manager, macOS Keychain, Linux Secret Service). Keys are NEVER stored in files.</p>
+    <p><strong>Functions:</strong></p>
+    <ul>
+      <li><code>store_key(provider, key)</code> - Validates key format, stores via <code>keyring.set_password("loki", provider, key)</code></li>
+      <li><code>retrieve_key(provider)</code> - <code>keyring.get_password("loki", provider)</code></li>
+      <li><code>delete_key(provider)</code> - <code>keyring.delete_password("loki", provider)</code></li>
+      <li><code>_validate_key_format(key)</code> - Regex patterns per provider: Groq (<code>gsk_</code>), OpenAI (<code>sk-</code>), Anthropic (<code>sk-ant-</code>), OpenRouter (<code>sk-or-</code>)</li>
+      <li><code>_update_config_hash()</code> - Stores SHA256 hash of API key in config for tamper detection</li>
+      <li><code>_verify_config_hash()</code> - Verifies stored hash matches actual key</li>
+    </ul>
+    <p><strong>Why keyring:</strong> OS keychain is encrypted at rest, protected by user login, and never exposed as plain text files.</p>
+  </div>
+
+  <div class="file-card">
+    <h3>Layer 2: cache_security.py - Encrypted Cache</h3>
+    <p><strong>Purpose:</strong> Encrypts all cache files on disk using Fernet symmetric encryption (AES-128-CBC with HMAC-SHA256).</p>
+    <p><strong>Functions:</strong></p>
+    <ul>
+      <li><code>save_encrypted(filename, data)</code> - Serializes to JSON, encrypts with <code>Fernet(key).encrypt()</code>, writes to disk</li>
+      <li><code>load_encrypted(filename)</code> - Reads file, decrypts with <code>Fernet(key).decrypt()</code>, parses JSON</li>
+      <li><code>_get_or_create_key()</code> - Retrieves encryption key from OS keychain, or generates new one and stores it</li>
+      <li><code>_set_restrictive_permissions()</code> - Sets file permissions to owner-only (0o600 on Unix)</li>
+    </ul>
+    <p><strong>How Fernet works:</strong> Each encrypted token contains: version (1 byte) + timestamp (8 bytes) + IV (16 bytes) + ciphertext + HMAC (32 bytes). Decryption requires the same key.</p>
+  </div>
+
+  <div class="file-card">
+    <h3>Layer 3: secure_delete.py - Secure Deletion</h3>
+    <p><strong>Purpose:</strong> Prevents data recovery by overwriting files with random data before deletion.</p>
+    <p><strong>Algorithm (3-pass):</strong></p>
+    <ul>
+      <li>Pass 1: Overwrite entire file with random bytes (<code>os.urandom()</code>)</li>
+      <li>Pass 2: Overwrite with different random bytes</li>
+      <li>Pass 3: Overwrite with zeros</li>
+      <li>Then <code>os.unlink()</code> to remove the file entry</li>
+    </ul>
+    <p><code>secure_delete_dir()</code> - Recursively walks directory, secure-deletes all files, then removes empty directories.</p>
+  </div>
+
+  <div class="file-card">
+    <h3>Layer 4: leak_prevention.py - Data Sanitization</h3>
+    <p><strong>Purpose:</strong> Prevents API keys, passwords, tokens, and secrets from being sent to AI providers.</p>
+    <p><strong>6 sensitive patterns:</strong></p>
+    <ul>
+      <li>API keys: <code>(?:api[_-]?key|apikey)\s*[:=]\s*['"]?([a-zA-Z0-9]{20,})['"]?</code></li>
+      <li>Passwords: <code>(?:password|passwd|pwd)\s*[:=]\code></li>
+      <li>Tokens: <code>(?:token|secret|bearer)\s*[:=]</code></li>
+      <li>AWS keys: <code>AKIA[0-9A-Z]{16}</code></li>
+      <li>Generic secrets: <code>(?:sk|pk|key)[_-][a-zA-Z0-9]{20,}</code></li>
+      <li>Connection strings: <code>mongodb(\+srv)?://</code></li>
+    </ul>
+    <p><code>sanitize_for_ai()</code> additionally removes <code>os.environ</code> and <code>os.getenv</code> calls.</p>
+  </div>
+
+  <div class="file-card">
+    <h3>Layer 5: integrity.py - Package Integrity</h3>
+    <p><strong>Purpose:</strong> Detects tampering with the installed package files.</p>
+    <p><strong>Functions:</strong></p>
+    <ul>
+      <li><code>generate_manifest()</code> - Walks package directory, computes SHA256 hash of every file, saves to <code>MANIFEST_FILE</code></li>
+      <li><code>verify_manifest()</code> - Recomputes hashes and compares against stored manifest. Returns list of modified/added/deleted files.</li>
+    </ul>
+  </div>
+
+  <div class="file-card">
+    <h3>guardrails.py - AI Safety</h3>
+    <p><strong>Purpose:</strong> Prevents prompt injection, training data leaks, and system prompt exposure.</p>
+    <p><strong>Input validation:</strong></p>
+    <ul>
+      <li><strong>12 injection patterns:</strong> Detects "ignore previous instructions", "you are now", "system:", "ADMIN:", etc.</li>
+      <li><strong>10 forbidden topics:</strong> Blocks questions about system prompt, training data, other users, etc.</li>
+      <li><strong>8 training data patterns:</strong> Blocks probing for "as an AI", "you were trained", "your training data", etc.</li>
+    </ul>
+    <p><strong>Output validation:</strong></p>
+    <ul>
+      <li>Strips any leaked system prompt text</li>
+      <li>Removes shell command blocks (<code>```bash</code>, <code>```sh</code>)</li>
+      <li>Filters training data leak patterns from response</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ==================== AI ENGINE ==================== -->
+<section id="ai">
+  <h1>AI Engine</h1>
+
+  <div class="file-card">
+    <h3>ai/chat.py - ChatSession</h3>
+    <p><strong>Purpose:</strong> Manages the complete chat lifecycle: input validation → sanitization → context retrieval → AI call → output filtering → history storage.</p>
+    <p><strong>Flow of <code>send(message)</code>:</strong></p>
+    <ol>
+      <li><code>AIGuardrails.validate_input(message)</code> - Block injection/forbidden topics</li>
+      <li><code>LeakPrevention.sanitize_for_ai(message)</code> - Strip sensitive data</li>
+      <li><code>get_context(sanitized)</code> - RAG query for relevant code chunks</li>
+      <li><code>get_error_context()</code> - Format detected errors as context</li>
+      <li><code>provider.chat(sanitized, full_context)</code> - Send to AI with combined context</li>
+      <li><code>AIGuardrails.validate_output(response)</code> - Filter leaks from AI response</li>
+      <li>Append both messages to <code>self.history</code></li>
+    </ol>
+    <p><strong>Context format:</strong> Each RAG chunk becomes <code>"file_path:start_line-end_line\n{code_content}"</code>. Errors become <code>"- file:line [severity] message"</code>.</p>
+  </div>
+
+  <div class="file-card">
+    <h3>ai/system_prompt.py</h3>
+    <p><strong>Purpose:</strong> Hardcoded system prompt with 10 strict behavioral rules for the AI.</p>
+    <p><strong>Rules:</strong> Code-only topics, no command execution, no prompt leakage, no personal opinions, no harmful code, always explain reasoning, ask for clarification when needed, format code properly, no speculation about users, stay in character as Loki.</p>
+  </div>
+</section>
+
+<!-- ==================== PROVIDERS ==================== -->
+<section id="providers">
+  <h1>AI Providers</h1>
+
+  <div class="file-card">
+    <h3>providers/base.py - AIProvider (ABC)</h3>
+    <p><strong>Purpose:</strong> Abstract base class defining the interface all AI providers must implement.</p>
+    <p><strong>Abstract methods:</strong> <code>chat(prompt, context) -> str</code>, <code>embed(text) -> list[float]</code>, <code>validate_key(key) -> bool</code></p>
+  </div>
+
+  <div class="file-card">
+    <h3>providers/groq.py - GroqProvider</h3>
+    <p><strong>Purpose:</strong> Default free AI provider. Uses Groq's fast inference API.</p>
+    <p><strong>Implementation:</strong> <code>groq.Groq(api_key=key).chat.completions.create(model=model, messages=[{system}, {user}])</code></p>
+    <p><strong>Key validation:</strong> Regex <code>r'^gsk_[a-zA-Z0-9]{48}$'</code></p>
+    <p><strong>Default model:</strong> <code>llama-3.3-70b-versatile</code></p>
+    <p><strong>System prompt:</strong> Built from system_prompt.py with additional codebase context injected.</p>
+  </div>
+
+  <div class="file-card">
+    <h3>providers/openai_provider.py - OpenAIProvider</h3>
+    <p><strong>Purpose:</strong> OpenAI API integration (optional dependency).</p>
+    <p><strong>Implementation:</strong> <code>openai.OpenAI(api_key=key).chat.completions.create(model=model, messages=[...])</code></p>
+    <p><strong>Also supports:</strong> <code>embeddings.create()</code> for vector embeddings.</p>
+    <p><strong>Key validation:</strong> Regex <code>r'^sk-[a-zA-Z0-9]{48}$'</code></p>
+  </div>
+
+  <div class="file-card">
+    <h3>providers/anthropic.py - AnthropicProvider</h3>
+    <p><strong>Purpose:</strong> Anthropic Claude API integration (optional dependency).</p>
+    <p><strong>Implementation:</strong> <code>anthropic.Anthropic(api_key=key).messages.create(model=model, max_tokens=4096, system=system, messages=[...])</code></p>
+    <p><strong>Key validation:</strong> Regex <code>r'^sk-ant-[a-zA-Z0-9]{93}$'</code></p>
+  </div>
+
+  <div class="file-card">
+    <h3>providers/openrouter.py - OpenRouterProvider</h3>
+    <p><strong>Purpose:</strong> OpenRouter API integration - access to multiple models via HTTP.</p>
+    <p><strong>Implementation:</strong> Raw HTTP POST to <code>https://openrouter.ai/api/v1/chat/completions</code> using <code>httpx</code>.</p>
+    <p><strong>Key validation:</strong> Regex <code>r'^sk-or-[a-zA-Z0-9]{64}$'</code></p>
+  </div>
+</section>
+
+<!-- ==================== RAG ==================== -->
+<section id="rag">
+  <h1>RAG Engine (Retrieval-Augmented Generation)</h1>
+
+  <div class="file-card">
+    <h3>ai/rag.py - RAGEngine</h3>
+    <p><strong>Purpose:</strong> Builds a vector search index over your codebase so the AI can find and understand relevant code when answering questions.</p>
+    <p><strong>How it works:</strong></p>
+    <ol>
+      <li><strong>Chunking:</strong> <code>chunk_code()</code> splits each file into 50-line chunks with 10-line overlap. Each chunk becomes a <code>CodeChunk(file_path, start_line, end_line, content, language)</code></li>
+      <li><strong>Embedding:</strong> <code>SentenceTransformer("all-MiniLM-L6-v2")</code> converts each chunk's text into a 384-dimensional vector</li>
+      <li><strong>Indexing:</strong> <code>faiss.IndexFlatL2(384)</code> stores all vectors. L2 distance for similarity search.</li>
+      <li><strong>Saving:</strong> <code>faiss.write_index()</code> saves the index. <code>chunks.json</code> stores chunk metadata.</li>
+      <li><strong>Querying:</strong> User question → embed → <code>index.search(embedding, top_k=5)</code> → return 5 most relevant chunks</li>
+    </ol>
+    <p><strong>Libraries:</strong></p>
+    <ul>
+      <li><code>faiss-cpu</code> - Facebook's vector similarity search library</li>
+      <li><code>sentence-transformers</code> - Hugging Face model for text embeddings</li>
+      <li><code>numpy</code> - Array operations for FAISS</li>
+    </ul>
+    <p><strong>Storage:</strong> <code>~/.loki/{project_hash}/embeddings/index.faiss</code> + <code>chunks.json</code></p>
+    <p><strong>Current state:</strong> 124 chunks indexed, 190KB index file, 162KB chunks.json</p>
+  </div>
+</section>
+
+<!-- ==================== WEB UI ==================== -->
+<section id="webui">
+  <h1>Web UI Backend</h1>
+
+  <div class="file-card">
+    <h3>ui/server.py - UIServer</h3>
+    <p><strong>Purpose:</strong> FastAPI web server that serves the web UI and API endpoints.</p>
+    <p><strong>Features:</strong></p>
+    <ul>
+      <li>CORS configured for localhost only (127.0.0.1:8080)</li>
+      <li>Serves static files from <code>ui/static/</code></li>
+      <li>Auto-opens browser on start with <code>webbrowser.open()</code></li>
+      <li>Uses <code>uvicorn.run()</code> for ASGI server</li>
+    </ul>
+  </div>
+
+  <div class="file-card">
+    <h3>ui/routes.py - API Endpoints</h3>
+    <p><strong>Endpoints:</strong></p>
+    <ul>
+      <li><code>GET /api/files</code> - Returns file tree with error counts per file</li>
+      <li><code>GET /api/errors?file=</code> - Returns errors, optionally filtered by file path</li>
+      <li><code>GET /api/content?file=</code> - Returns raw file content for code viewer</li>
+      <li><code>POST /api/chat</code> - Sends message to AI, returns response with RAG context</li>
+      <li><code>WS /ws/chat</code> - WebSocket for real-time chat</li>
+      <li><code>GET /api/runtime-errors</code> - Returns captured runtime errors</li>
+    </ul>
+    <p><strong>Key pattern:</strong> All functions handle both dict and dataclass objects from cache using <code>_get_attr()</code> helper.</p>
+  </div>
+
+  <div class="file-card">
+    <h3>ui/security.py - Rate Limiter & Sanitizer</h3>
+    <p><strong>Functions:</strong></p>
+    <ul>
+      <li><code>RateLimiter.is_allowed(ip)</code> - In-memory per-IP rate limiting (prevents abuse)</li>
+      <li><code>InputSanitizer.sanitize_file_path(path)</code> - Prevents directory traversal (removes <code>../</code>, <code>..\\</code>)</li>
+      <li><code>InputSanitizer.sanitize_message(msg)</code> - HTML escapes, limits length to 1000 chars, removes control characters</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ==================== FRONTEND ==================== -->
+<section id="frontend">
+  <h1>Frontend (HTML/CSS/JS)</h1>
+
+  <div class="file-card">
+    <h3>ui/static/index.html</h3>
+    <p><strong>Purpose:</strong> Single-page application with three-panel layout.</p>
+    <p><strong>Layout:</strong></p>
+    <ul>
+      <li><strong>Left panel (280px):</strong> File tree sidebar + stats (files, errors, warnings)</li>
+      <li><strong>Center panel (1fr):</strong> Code viewer with Prism.js syntax highlighting + error list</li>
+      <li><strong>Right panel (360px):</strong> AI chat sidebar</li>
+    </ul>
+    <p><strong>External libraries (CDN):</strong></p>
+    <ul>
+      <li><strong>Three.js r128:</strong> Animated neural-graph background with 95 particles and dynamic links</li>
+      <li><strong>Prism.js 1.29.0:</strong> Syntax highlighting for code blocks</li>
+      <li><strong>Google Fonts:</strong> Space Grotesk (headings), Inter (body), JetBrains Mono (code)</li>
+    </ul>
+    <p><strong>Mobile support:</strong> Slide-over drawers with hamburger menu at 900px breakpoint</p>
+  </div>
+
+  <div class="file-card">
+    <h3>ui/static/style.css</h3>
+    <p><strong>Purpose:</strong> Complete dark-theme CSS with "developer HUD" aesthetic.</p>
+    <p><strong>Key features:</strong></p>
+    <ul>
+      <li>30+ CSS custom properties for theming</li>
+      <li>Glass-panel effects with backdrop-filter: blur</li>
+      <li>Neon cyan (#00f0ff) and violet (#b84dff) accent colors</li>
+      <li>Animated corner brackets (<code>corner-breathe</code> animation)</li>
+      <li>Scan-sweep gradient animation on active elements</li>
+      <li>Holographic tilt effects on hover</li>
+      <li>Custom scrollbar styling</li>
+      <li>Responsive breakpoints: 1180px, 900px, 600px</li>
+    </ul>
+  </div>
+
+  <div class="file-card">
+    <h3>ui/static/app.js</h3>
+    <p><strong>Purpose:</strong> Frontend JavaScript - fetches data from API, renders UI, handles chat.</p>
+    <p><strong>Key functions:</strong></p>
+    <ul>
+      <li><code>loadFiles()</code> - Fetches <code>/api/files</code>, renders file tree with icons and error badges</li>
+      <li><code>loadContent(filePath, ext)</code> - Fetches <code>/api/content</code>, applies Prism.js highlighting</li>
+      <li><code>loadAllErrors()</code> - Fetches <code>/api/errors</code>, updates stats and error list</li>
+      <li><code>sendChat()</code> - POST to <code>/api/chat</code>, appends response to chat panel</li>
+      <li><code>getLanguageClass(ext)</code> - Maps file extensions to Prism.js language classes</li>
+      <li><code>escapeHtml(text)</code> - Prevents XSS via DOM textContent</li>
+      <li><code>Prism.highlightElement(codeElement)</code> - Applies syntax highlighting to code blocks</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ==================== CI/CD ==================== -->
+<section id="cicd">
+  <h1>CI/CD Pipelines</h1>
+
+  <div class="file-card">
+    <h3>.github/workflows/test.yml</h3>
+    <p><strong>Purpose:</strong> Runs tests and linting on every push/PR to main.</p>
+    <p><strong>Steps:</strong> Checkout → Setup Python (3.10/3.11/3.12 matrix) → Install deps → <code>pytest tests/ -v --cov=loki</code> → <code>ruff check .</code></p>
+  </div>
+
+  <div class="file-card">
+    <h3>.github/workflows/publish.yml</h3>
+    <p><strong>Purpose:</strong> Auto-publishes to PyPI when a GitHub release is created.</p>
+    <p><strong>Steps:</strong> Checkout → Setup Python → Build (<code>python -m build</code>) → Publish (<code>pypa/gh-action-pypi-publish@release/v1</code> with trusted publishing)</p>
+  </div>
+</section>
+
+<!-- ==================== TESTS ==================== -->
+<section id="tests">
+  <h1>Test Suite</h1>
+
+  <div class="file-card">
+    <h3>tests/test_cache.py</h3>
+    <p><strong>Tests:</strong> <code>test_cache_save_and_load()</code> - Creates temp directory, saves ScanResult, loads it back, verifies data matches. <code>test_cache_exists()</code> - Verifies exists() returns False when no cache, True after save.</p>
+  </div>
+
+  <div class="file-card">
+    <h3>tests/test_commands.py</h3>
+    <p><strong>Tests:</strong> <code>test_init_creates_cache()</code> - Creates temp project with a Python file, runs execute_init(), verifies cache directory exists.</p>
+  </div>
+
+  <div class="file-card">
+    <h3>tests/test_errors.py</h3>
+    <p><strong>Tests:</strong> <code>test_detect_syntax_errors()</code> - Creates file with syntax error (unclosed bracket), runs ErrorDetector, verifies error is found. Creates valid file, verifies no errors.</p>
+  </div>
+
+  <div class="file-card">
+    <h3>tests/test_providers.py</h3>
+    <p><strong>Tests:</strong> <code>test_groq_validate_key()</code> - Verifies valid <code>gsk_</code> key is accepted, invalid keys rejected.</p>
+  </div>
+
+  <div class="file-card">
+    <h3>tests/test_scanner.py</h3>
+    <p><strong>Tests:</strong> <code>test_scanner_finds_python_files()</code> - Creates temp dir with .py file, runs scanner, verifies file is found. <code>test_scanner_respects_ignore_patterns()</code> - Creates __pycache__ directory, verifies it's skipped.</p>
+  </div>
+
+  <div class="file-card">
+    <h3>tests/test_security.py</h3>
+    <p><strong>Tests:</strong> <code>test_sanitize_api_key()</code> - Passes text with API key, verifies it's redacted to <code>[REDACTED]</code>. <code>test_sanitize_for_ai()</code> - Verifies os.environ calls are stripped.</p>
+  </div>
+</section>
+
+<!-- ==================== BUG FIXES ==================== -->
+<section id="bugs">
+  <h1>Bugs Found & Fixed</h1>
+
+  <div class="bug-card fixed">
+    <h3>Bug 1: Rich Markup Error in errors_cmd.py</h3>
+    <p><strong>Error:</strong> <code>rich.errors.MarkupError: invalid markup</code> when displaying errors with empty severity.</p>
+    <p><strong>Cause:</strong> Code used <code>f"[{style}]"</code> where style could be empty string, creating invalid Rich markup like <code>""</code>.</p>
+    <p><strong>Fix:</strong> Default to <code>"white"</code> when severity is unrecognized: <code>style = _get_severity(e) or "white"</code></p>
+  </div>
+
+  <div class="bug-card fixed">
+    <h3>Bug 2: Severity.value Error in report_cmd.py</h3>
+    <p><strong>Error:</strong> <code>AttributeError: 'str' object has no attribute 'value'</code> when generating reports.</p>
+    <p><strong>Cause:</strong> Cache deserializes severity as a string (e.g., "error"), not as Severity enum. Code used <code>e.severity.value</code>.</p>
+    <p><strong>Fix:</strong> Created <code>_get_severity()</code> helper that handles both dict and enum: <code>if isinstance(sev, str): return sev; if hasattr(sev, 'value'): return sev.value</code></p>
+  </div>
+
+  <div class="bug-card fixed">
+    <h3>Bug 3: Dict vs Object Access in All Commands</h3>
+    <p><strong>Error:</strong> Commands failed with <code>AttributeError</code> or <code>KeyError</code> when accessing error/file properties.</p>
+    <p><strong>Cause:</strong> <code>CacheManager.load_errors()</code> returns deserialized data. Depending on how it's loaded, objects could be dicts OR dataclass instances.</p>
+    <p><strong>Fix:</strong> Added <code>_get_attr(obj, attr)</code> helper to every command: <code>if hasattr(obj, attr): return getattr(obj, attr); if isinstance(obj, dict): return obj.get(attr, '')</code></p>
+  </div>
+
+  <div class="bug-card fixed">
+    <h3>Bug 4: Python-Only Code Extraction in fix_cmd.py</h3>
+    <p><strong>Error:</strong> AI responses with non-Python code blocks weren't extracted.</p>
+    <p><strong>Cause:</strong> Regex was <code>r'```(?:python|py)?\n(.*?)```'</code> - only matched Python.</p>
+    <p><strong>Fix:</strong> Changed to <code>r'```(?:\w+)?\n(.*?)```'</code> - matches any language code block.</p>
+  </div>
+
+  <div class="bug-card fixed">
+    <h3>Bug 5: Linter Timeouts on Large Projects</h3>
+    <p><strong>Error:</strong> <code>loki init</code> would hang for minutes on projects with many files.</p>
+    <p><strong>Cause:</strong> Pylint (120s timeout, 10 files), Mypy (120s, 10 files), ESLint (120s, 10 files) were too slow.</p>
+    <p><strong>Fix:</strong> Reduced timeouts (60s/30s), limited to 5 files per linter, added <code>--disable=C,R</code> to pylint to skip convention/refactor checks.</p>
+  </div>
+
+  <div class="bug-card fixed">
+    <h3>Bug 6: RAG Only Indexed Python Files</h3>
+    <p><strong>Error:</strong> AI chat had no context about JS/TS/Rust/Go files.</p>
+    <p><strong>Cause:</strong> <code>init_cmd.py</code> had <code>if file_meta.language.value == "python":</code> filter.</p>
+    <p><strong>Fix:</strong> Changed to <code>if file_meta.language.value != "unknown":</code> to index ALL languages.</p>
+  </div>
+</section>
+
+<!-- ==================== DEPENDENCIES ==================== -->
+<section id="dependencies">
+  <h1>Dependencies</h1>
+  <div class="card">
+    <table class="dep-table">
+      <thead>
+        <tr><th>Package</th><th>Version</th><th>Used In</th><th>Purpose</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>click</td><td>>=8.0</td><td>cli.py</td><td>CLI framework - command parsing, help text, options</td></tr>
+        <tr><td>rich</td><td>>=13.0</td><td>All commands</td><td>Terminal formatting - tables, colors, markdown, progress bars</td></tr>
+        <tr><td>groq</td><td>>=0.4</td><td>providers/groq.py</td><td>Groq API client (free tier)</td></tr>
+        <tr><td>openai</td><td>>=1.0</td><td>providers/openai_provider.py</td><td>OpenAI API client (optional)</td></tr>
+        <tr><td>anthropic</td><td>>=0.20</td><td>providers/anthropic.py</td><td>Anthropic API client (optional)</td></tr>
+        <tr><td>httpx</td><td>>=0.25</td><td>providers/openrouter.py</td><td>HTTP client for OpenRouter API</td></tr>
+        <tr><td>faiss-cpu</td><td>>=1.7</td><td>ai/rag.py</td><td>Vector similarity search (Facebook AI)</td></tr>
+        <tr><td>sentence-transformers</td><td>>=2.2</td><td>ai/rag.py</td><td>Text embeddings (Hugging Face)</td></tr>
+        <tr><td>numpy</td><td>>=1.24</td><td>ai/rag.py</td><td>Array operations for FAISS</td></tr>
+        <tr><td>cryptography</td><td>>=41.0</td><td>security/cache_security.py</td><td>Fernet encryption (AES-128-CBC)</td></tr>
+        <tr><td>keyring</td><td>>=24.0</td><td>security/secret_manager.py</td><td>OS keychain access</td></tr>
+        <tr><td>fastapi</td><td>>=0.104</td><td>ui/server.py</td><td>Web API framework</td></tr>
+        <tr><td>uvicorn</td><td>>=0.24</td><td>ui/server.py</td><td>ASGI server</td></tr>
+        <tr><td>websockets</td><td>>=12.0</td><td>ui/routes.py</td><td>WebSocket support for real-time chat</td></tr>
+        <tr><td>watchdog</td><td>>=3.0</td><td>commands/watch_cmd.py</td><td>Filesystem monitoring</td></tr>
+        <tr><td>hatchling</td><td>build</td><td>pyproject.toml</td><td>Package build backend</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ==================== ALL FILES ==================== -->
+<section id="files">
+  <h1>All Files Reference</h1>
+  <div class="card">
+    <table class="file-table">
+      <thead>
+        <tr><th>File</th><th>Lines</th><th>Purpose</th><th>Key Functions</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>pyproject.toml</td><td>45</td><td>Package config, deps, entry point</td><td>loki entry point, hatchling build</td></tr>
+        <tr><td>loki/__init__.py</td><td>3</td><td>Package version</td><td>__version__, __author__</td></tr>
+        <tr><td>loki/cli.py</td><td>120</td><td>CLI entry point, 11 commands</td><td>main(), init(), errors(), show(), ai(), fix(), etc.</td></tr>
+        <tr><td>loki/core/types.py</td><td>83</td><td>All data structures</td><td>Severity, Language, FileMetadata, ScanResult, Error, CodeChunk</td></tr>
+        <tr><td>loki/core/scanner.py</td><td>130</td><td>Multi-language file scanner</td><td>scan(), _walk_files(), _parse_file(), EXTENSION_MAP</td></tr>
+        <tr><td>loki/core/errors.py</td><td>350</td><td>Error detection for all languages</td><td>detect_all(), _check_*_syntax(), _run_*linters()</td></tr>
+        <tr><td>loki/core/cache.py</td><td>77</td><td>Encrypted cache manager</td><td>save_scan(), load_scan(), save_errors(), load_errors()</td></tr>
+        <tr><td>loki/core/config.py</td><td>65</td><td>User config persistence</td><td>get_provider(), set_provider(), get_ignore_patterns()</td></tr>
+        <tr><td>loki/core/runtime_capture.py</td><td>90</td><td>Runtime error capture hooks</td><td>setup_runtime_capture(), capture_exception(), get_runtime_errors()</td></tr>
+        <tr><td>loki/core/global_hook.py</td><td>120</td><td>Extended exception hook</td><td>init_hook(), @catch_all, ExceptionLogger</td></tr>
+        <tr><td>loki/security/secret_manager.py</td><td>110</td><td>OS keychain API key storage</td><td>store_key(), retrieve_key(), _validate_key_format()</td></tr>
+        <tr><td>loki/security/cache_security.py</td><td>80</td><td>Fernet encryption for cache</td><td>save_encrypted(), load_encrypted(), _get_or_create_key()</td></tr>
+        <tr><td>loki/security/secure_delete.py</td><td>55</td><td>3-pass secure file deletion</td><td>secure_delete(), secure_delete_dir()</td></tr>
+        <tr><td>loki/security/leak_prevention.py</td><td>70</td><td>Secret redaction</td><td>sanitize(), sanitize_for_ai(), SENSITIVE_PATTERNS</td></tr>
+        <tr><td>loki/security/integrity.py</td><td>50</td><td>Package integrity verification</td><td>generate_manifest(), verify_manifest()</td></tr>
+        <tr><td>loki/ai/rag.py</td><td>124</td><td>FAISS vector search index</td><td>build_index(), query(), chunk_code(), _save_index()</td></tr>
+        <tr><td>loki/ai/chat.py</td><td>87</td><td>Chat session management</td><td>send(), get_context(), get_error_context()</td></tr>
+        <tr><td>loki/ai/guardrails.py</td><td>150</td><td>AI safety (injection/leak prevention)</td><td>validate_input(), validate_output(), INJECTION_PATTERNS</td></tr>
+        <tr><td>loki/ai/system_prompt.py</td><td>30</td><td>AI behavioral rules</td><td>SYSTEM_PROMPT constant</td></tr>
+        <tr><td>loki/ai/providers/base.py</td><td>25</td><td>Abstract provider interface</td><td>AIProvider(ABC), chat(), embed(), validate_key()</td></tr>
+        <tr><td>loki/ai/providers/groq.py</td><td>60</td><td>Groq API provider</td><td>GroqProvider, chat(), validate_key()</td></tr>
+        <tr><td>loki/ai/providers/openai_provider.py</td><td>70</td><td>OpenAI API provider</td><td>OpenAIProvider, chat(), embed(), validate_key()</td></tr>
+        <tr><td>loki/ai/providers/anthropic.py</td><td>65</td><td>Anthropic API provider</td><td>AnthropicProvider, chat(), validate_key()</td></tr>
+        <tr><td>loki/ai/providers/openrouter.py</td><td>70</td><td>OpenRouter API provider</td><td>OpenRouterProvider, chat(), validate_key()</td></tr>
+        <tr><td>loki/commands/init_cmd.py</td><td>75</td><td>loki init implementation</td><td>execute_init()</td></tr>
+        <tr><td>loki/commands/errors_cmd.py</td><td>65</td><td>loki errors implementation</td><td>execute_errors(), _get_severity(), _get_attr()</td></tr>
+        <tr><td>loki/commands/describe_cmd.py</td><td>55</td><td>loki describe implementation</td><td>execute_describe()</td></tr>
+        <tr><td>loki/commands/ai_cmd.py</td><td>59</td><td>loki ai implementation</td><td>execute_ai()</td></tr>
+        <tr><td>loki/commands/exit_cmd.py</td><td>35</td><td>loki exit implementation</td><td>execute_exit()</td></tr>
+        <tr><td>loki/commands/fix_cmd.py</td><td>156</td><td>loki fix implementation</td><td>execute_fix(), _extract_code_from_response(), _apply_fix_to_file()</td></tr>
+        <tr><td>loki/commands/watch_cmd.py</td><td>50</td><td>loki watch implementation</td><td>execute_watch(), ChangeHandler</td></tr>
+        <tr><td>loki/commands/report_cmd.py</td><td>80</td><td>loki report implementation</td><td>execute_report(), _get_severity(), _get_attr()</td></tr>
+        <tr><td>loki/commands/models_cmd.py</td><td>70</td><td>loki models implementation</td><td>execute_models(), PROVIDERS dict</td></tr>
+        <tr><td>loki/commands/capture_cmd.py</td><td>120</td><td>loki capture implementation</td><td>execute_capture(), _is_error_line(), ERROR_PATTERNS</td></tr>
+        <tr><td>loki/commands/inject_cmd.py</td><td>60</td><td>loki inject implementation</td><td>execute_inject(), HOOK_CODE</td></tr>
+        <tr><td>loki/ui/server.py</td><td>55</td><td>FastAPI web server</td><td>UIServer, start(), _setup_middleware()</td></tr>
+        <tr><td>loki/ui/routes.py</td><td>132</td><td>API endpoints</td><td>create_router(), /api/files, /api/errors, /api/chat</td></tr>
+        <tr><td>loki/ui/security.py</td><td>60</td><td>Rate limiter + input sanitizer</td><td>RateLimiter, InputSanitizer</td></tr>
+        <tr><td>loki/ui/static/index.html</td><td>200</td><td>Web UI HTML</td><td>Three.js background, three-panel layout</td></tr>
+        <tr><td>loki/ui/static/style.css</td><td>400</td><td>Dark theme CSS</td><td>30+ CSS variables, animations, responsive</td></tr>
+        <tr><td>loki/ui/static/app.js</td><td>228</td><td>Frontend JavaScript</td><td>loadFiles(), loadContent(), sendChat()</td></tr>
+        <tr><td>.github/workflows/test.yml</td><td>35</td><td>CI test pipeline</td><td>pytest + ruff on Python 3.10-3.12</td></tr>
+        <tr><td>.github/workflows/publish.yml</td><td>30</td><td>PyPI publish pipeline</td><td>Build + publish on release</td></tr>
+        <tr><td>tests/test_cache.py</td><td>30</td><td>Cache tests</td><td>test_cache_save_and_load(), test_cache_exists()</td></tr>
+        <tr><td>tests/test_commands.py</td><td>25</td><td>Command tests</td><td>test_init_creates_cache()</td></tr>
+        <tr><td>tests/test_errors.py</td><td>30</td><td>Error detection tests</td><td>test_detect_syntax_errors()</td></tr>
+        <tr><td>tests/test_providers.py</td><td>20</td><td>Provider tests</td><td>test_groq_validate_key()</td></tr>
+        <tr><td>tests/test_scanner.py</td><td>30</td><td>Scanner tests</td><td>test_scanner_finds_python_files()</td></tr>
+        <tr><td>tests/test_security.py</td><td>25</td><td>Security tests</td><td>test_sanitize_api_key()</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+</main>
+
+<script src="res.app.js"></script>
+</body>
+</html>

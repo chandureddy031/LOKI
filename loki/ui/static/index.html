@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Loki — AI Code Analysis</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Ambient 3D layer. Purely decorative — never read from or written to by app.js. -->
+    <canvas id="bg-canvas"></canvas>
+    <div class="hud-vignette" aria-hidden="true"></div>
+
+    <!-- Mobile-only controls for the slide-over panels. Additive, app.js is untouched. -->
+    <button id="nav-toggle" class="edge-toggle edge-toggle--left" aria-label="Toggle project files" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    </button>
+    <button id="chat-toggle" class="edge-toggle edge-toggle--right" aria-label="Toggle AI assistant" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 5h16v11H8l-4 4V5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+    </button>
+    <div id="scrim" class="scrim"></div>
+
+    <div class="app">
+        <nav class="sidebar" id="sidebar-panel">
+            <div class="logo">
+                <span class="logo-icon">
+                    <svg viewBox="0 0 40 40" fill="none">
+                        <polygon points="20,3 35,12 35,28 20,37 5,28 5,12" stroke="url(#logoGrad)" stroke-width="1.6"/>
+                        <polygon points="20,12 28,16.5 28,25.5 20,30 12,25.5 12,16.5" stroke="url(#logoGrad)" stroke-width="1.2" opacity="0.65"/>
+                        <circle cx="20" cy="20" r="3" fill="url(#logoGrad)"/>
+                        <defs>
+                            <linearGradient id="logoGrad" x1="5" y1="3" x2="35" y2="37" gradientUnits="userSpaceOnUse">
+                                <stop offset="0" stop-color="#4cf3ff"/>
+                                <stop offset="1" stop-color="#9d6cff"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </span>
+                <div class="logo-text">
+                    <h1>Loki</h1>
+                    <span class="logo-sub">Code Intelligence</span>
+                </div>
+            </div>
+            <div class="nav-section">
+                <h3>Project Files</h3>
+                <div id="file-tree" class="file-tree"></div>
+            </div>
+            <div class="nav-stats">
+                <div class="stat">
+                    <span class="stat-label">Files</span>
+                    <span id="stat-files" class="stat-value">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Errors</span>
+                    <span id="stat-errors" class="stat-value error">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Warnings</span>
+                    <span id="stat-warnings" class="stat-value warning">0</span>
+                </div>
+            </div>
+        </nav>
+
+        <main class="content">
+            <header class="topbar">
+                <div class="breadcrumb">
+                    <span class="breadcrumb-label">Viewing</span>
+                    <span id="current-file">Select a file</span>
+                </div>
+                <div class="actions">
+                    <button onclick="refreshData()" class="btn btn-secondary">
+                        <svg viewBox="0 0 24 24" fill="none" class="btn-icon"><path d="M20 11A8 8 0 1 0 18.5 16.5M20 5v6h-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        Refresh
+                    </button>
+                </div>
+            </header>
+
+            <div class="panels">
+                <div class="code-panel hud-panel">
+                    <div class="panel-header">
+                        <h2>Code Viewer</h2>
+                        <span id="line-count" class="badge badge-ghost">0 lines</span>
+                    </div>
+                    <div class="code-container">
+                        <pre class="line-numbers"><code id="code-content" class="language-python">Click a file to view its content</code></pre>
+                    </div>
+                </div>
+
+                <div class="errors-panel hud-panel">
+                    <div class="panel-header">
+                        <h2>Errors &amp; Warnings</h2>
+                        <span id="error-count" class="badge">0</span>
+                    </div>
+                    <div id="error-list" class="error-list">
+                        <p class="empty-state">No errors detected</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <aside class="chat-sidebar" id="chat-panel">
+            <div class="panel-header">
+                <h2>AI Assistant</h2>
+                <span class="ai-pulse" aria-hidden="true"></span>
+            </div>
+            <div id="chat-messages" class="chat-messages">
+                <div class="chat-welcome">
+                    <p>Ask me anything about your codebase.</p>
+                    <p class="hint">I can explain errors, suggest fixes, and analyze code.</p>
+                </div>
+            </div>
+            <div class="chat-input-area">
+                <textarea id="chat-input" placeholder="Ask about your code..." rows="2"></textarea>
+                <button id="send-btn" onclick="sendChat()" class="btn btn-primary">Send</button>
+            </div>
+        </aside>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-go.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-rust.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+
+    <!-- Application logic. Unchanged from the original file, byte for byte. -->
+    <script src="app.js"></script>
+
+    <!-- ============================================================
+         Everything below is purely additive presentation code:
+         the Three.js ambient background and the mobile drawer
+         controls for the sidebar / chat panels. It never calls,
+         overrides, or depends on anything inside app.js — it only
+         reads two text labels from the DOM to tint itself.
+         ============================================================ -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+    (function () {
+        'use strict';
+
+        /* ---------- Mobile slide-over panels ---------- */
+        var navToggle   = document.getElementById('nav-toggle');
+        var chatToggle  = document.getElementById('chat-toggle');
+        var scrim       = document.getElementById('scrim');
+        var sidebarPanel = document.getElementById('sidebar-panel');
+        var chatPanel    = document.getElementById('chat-panel');
+
+        function closePanels() {
+            sidebarPanel.classList.remove('nav-open');
+            chatPanel.classList.remove('chat-open');
+            scrim.classList.remove('visible');
+            navToggle.setAttribute('aria-expanded', 'false');
+            chatToggle.setAttribute('aria-expanded', 'false');
+        }
+        function toggleSidebar() {
+            var opening = !sidebarPanel.classList.contains('nav-open');
+            closePanels();
+            if (opening) {
+                sidebarPanel.classList.add('nav-open');
+                scrim.classList.add('visible');
+                navToggle.setAttribute('aria-expanded', 'true');
+            }
+        }
+        function toggleChat() {
+            var opening = !chatPanel.classList.contains('chat-open');
+            closePanels();
+            if (opening) {
+                chatPanel.classList.add('chat-open');
+                scrim.classList.add('visible');
+                chatToggle.setAttribute('aria-expanded', 'true');
+            }
+        }
+        navToggle.addEventListener('click', toggleSidebar);
+        chatToggle.addEventListener('click', toggleChat);
+        scrim.addEventListener('click', closePanels);
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') closePanels();
+        });
+        // Picking a file or sending a chat message on mobile should close the drawer.
+        sidebarPanel.addEventListener('click', function (e) {
+            if (e.target.closest('.file-item') && window.innerWidth <= 900) closePanels();
+        });
+
+        /* ---------- Three.js ambient "neural graph" background ---------- */
+        var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        var canvas = document.getElementById('bg-canvas');
+        if (!canvas || typeof THREE === 'undefined') return;
+
+        var renderer, scene, camera, points, lineSegments, core;
+        var rafId = null;
+
+        try {
+            renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+        } catch (err) {
+            return; // No WebGL available — CSS gradient fallback in style.css still looks fine.
+        }
+
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 200);
+        camera.position.z = 62;
+
+        var isCompact = window.innerWidth < 720;
+        var PARTICLE_COUNT = isCompact ? 46 : 95;
+        var LINK_DISTANCE = isCompact ? 13 : 15;
+        var SPREAD = { x: 46, y: 28, z: 30 };
+
+        var positions = new Float32Array(PARTICLE_COUNT * 3);
+        var velocities = new Float32Array(PARTICLE_COUNT * 3);
+
+        for (var i = 0; i < PARTICLE_COUNT; i++) {
+            positions[i * 3]     = (Math.random() * 2 - 1) * SPREAD.x;
+            positions[i * 3 + 1] = (Math.random() * 2 - 1) * SPREAD.y;
+            positions[i * 3 + 2] = (Math.random() * 2 - 1) * SPREAD.z - 10;
+
+            velocities[i * 3]     = (Math.random() * 2 - 1) * 0.012;
+            velocities[i * 3 + 1] = (Math.random() * 2 - 1) * 0.012;
+            velocities[i * 3 + 2] = (Math.random() * 2 - 1) * 0.012;
+        }
+
+        var pointGeometry = new THREE.BufferGeometry();
+        pointGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+        var currentColor = new THREE.Color('#4cf3ff');
+        var targetColor  = new THREE.Color('#4cf3ff');
+        var healthyColor = new THREE.Color('#4cf3ff');
+        var warnColor    = new THREE.Color('#ffb84c');
+        var alertColor   = new THREE.Color('#ff3d7f');
+
+        var fieldGroup = new THREE.Group();
+        scene.add(fieldGroup);
+
+        // Soft additive halo behind each node — cheap fake "bloom".
+        var glowMaterial = new THREE.PointsMaterial({
+            color: currentColor,
+            size: isCompact ? 7 : 9,
+            map: makeGlowSprite(),
+            transparent: true,
+            opacity: 0.55,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+        });
+        var glowPoints = new THREE.Points(pointGeometry, glowMaterial);
+        fieldGroup.add(glowPoints);
+
+        var pointMaterial = new THREE.PointsMaterial({
+            color: currentColor,
+            size: isCompact ? 2.1 : 2.6,
+            transparent: true,
+            opacity: 1,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+        });
+        points = new THREE.Points(pointGeometry, pointMaterial);
+        fieldGroup.add(points);
+
+        var MAX_LINKS = PARTICLE_COUNT * 8;
+        var linkPositions = new Float32Array(MAX_LINKS * 2 * 3);
+        var linkGeometry = new THREE.BufferGeometry();
+        linkGeometry.setAttribute('position', new THREE.BufferAttribute(linkPositions, 3));
+        linkGeometry.setDrawRange(0, 0);
+
+        var linkMaterial = new THREE.LineBasicMaterial({
+            color: currentColor,
+            transparent: true,
+            opacity: 0.32,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+        });
+        lineSegments = new THREE.LineSegments(linkGeometry, linkMaterial);
+        fieldGroup.add(lineSegments);
+
+        var coreGeometry = new THREE.IcosahedronGeometry(11, 1);
+        var coreMaterial = new THREE.MeshBasicMaterial({
+            color: '#9d6cff',
+            wireframe: true,
+            transparent: true,
+            opacity: 0.16,
+            depthWrite: false
+        });
+        core = new THREE.Mesh(coreGeometry, coreMaterial);
+        core.position.set(0, 0, -18);
+        scene.add(core);
+
+        // Tiny radial-gradient canvas used as a sprite map so additive points
+        // render as soft glowing dots instead of hard squares.
+        function makeGlowSprite() {
+            var size = 64;
+            var c = document.createElement('canvas');
+            c.width = c.height = size;
+            var ctx = c.getContext('2d');
+            var g = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+            g.addColorStop(0, 'rgba(255,255,255,1)');
+            g.addColorStop(0.4, 'rgba(255,255,255,0.4)');
+            g.addColorStop(1, 'rgba(255,255,255,0)');
+            ctx.fillStyle = g;
+            ctx.fillRect(0, 0, size, size);
+            var tex = new THREE.CanvasTexture(c);
+            return tex;
+        }
+
+        var mouseX = 0, mouseY = 0, targetRotX = 0, targetRotY = 0;
+        window.addEventListener('mousemove', function (e) {
+            mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+            mouseY = (e.clientY / window.innerHeight) * 2 - 1;
+        }, { passive: true });
+
+        function onResize() {
+            isCompact = window.innerWidth < 720;
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+        window.addEventListener('resize', onResize);
+
+        /* Recolor the field based on the live error count — a true,
+           non-decorative read of app.js's own output (never written to). */
+        function syncHealthColor() {
+            var errEl = document.getElementById('stat-errors');
+            var warnEl = document.getElementById('stat-warnings');
+            var errors = errEl ? parseInt(errEl.textContent, 10) || 0 : 0;
+            var warnings = warnEl ? parseInt(warnEl.textContent, 10) || 0 : 0;
+
+            if (errors > 0) {
+                var t = Math.min(errors / 8, 1);
+                targetColor.copy(warnColor).lerp(alertColor, t);
+            } else if (warnings > 0) {
+                targetColor.copy(healthyColor).lerp(warnColor, Math.min(warnings / 10, 1));
+            } else {
+                targetColor.copy(healthyColor);
+            }
+        }
+        syncHealthColor();
+        setInterval(syncHealthColor, 2500);
+
+        var clock = new THREE.Clock();
+        var tiltEls = document.querySelectorAll('.hud-panel');
+        var tiltX = 0, tiltY = 0;
+
+        function tick() {
+            var dt = Math.min(clock.getDelta(), 0.05);
+            var elapsed = clock.elapsedTime;
+
+            currentColor.lerp(targetColor, 0.02);
+            pointMaterial.color.copy(currentColor);
+            glowMaterial.color.copy(currentColor);
+            linkMaterial.color.copy(currentColor);
+
+            var pos = pointGeometry.attributes.position.array;
+            for (var p = 0; p < PARTICLE_COUNT; p++) {
+                var ix = p * 3, iy = p * 3 + 1, iz = p * 3 + 2;
+                pos[ix] += velocities[ix];
+                pos[iy] += velocities[iy];
+                pos[iz] += velocities[iz];
+
+                if (pos[ix] > SPREAD.x || pos[ix] < -SPREAD.x) velocities[ix] *= -1;
+                if (pos[iy] > SPREAD.y || pos[iy] < -SPREAD.y) velocities[iy] *= -1;
+                if (pos[iz] > 10 || pos[iz] < -SPREAD.z - 10) velocities[iz] *= -1;
+            }
+            pointGeometry.attributes.position.needsUpdate = true;
+
+            var linkArr = linkGeometry.attributes.position.array;
+            var linkCount = 0;
+            for (var a = 0; a < PARTICLE_COUNT && linkCount < MAX_LINKS; a++) {
+                for (var b = a + 1; b < PARTICLE_COUNT && linkCount < MAX_LINKS; b++) {
+                    var dx = pos[a * 3] - pos[b * 3];
+                    var dy = pos[a * 3 + 1] - pos[b * 3 + 1];
+                    var dz = pos[a * 3 + 2] - pos[b * 3 + 2];
+                    var distSq = dx * dx + dy * dy + dz * dz;
+                    if (distSq < LINK_DISTANCE * LINK_DISTANCE) {
+                        var o = linkCount * 6;
+                        linkArr[o] = pos[a * 3]; linkArr[o + 1] = pos[a * 3 + 1]; linkArr[o + 2] = pos[a * 3 + 2];
+                        linkArr[o + 3] = pos[b * 3]; linkArr[o + 4] = pos[b * 3 + 1]; linkArr[o + 5] = pos[b * 3 + 2];
+                        linkCount++;
+                    }
+                }
+            }
+            linkGeometry.setDrawRange(0, linkCount * 2);
+            linkGeometry.attributes.position.needsUpdate = true;
+
+            fieldGroup.rotation.y += 0.0011;
+            core.rotation.y += 0.0016;
+            core.rotation.x += 0.0007;
+            core.material.opacity = 0.1 + Math.sin(elapsed * 0.6) * 0.06;
+
+            targetRotX += (mouseY * 0.06 - targetRotX) * 0.04;
+            targetRotY += (mouseX * 0.08 - targetRotY) * 0.04;
+            camera.position.x += (targetRotY * 8 - camera.position.x) * 0.05;
+            camera.position.y += (-targetRotX * 6 - camera.position.y) * 0.05;
+            camera.lookAt(0, 0, -10);
+
+            // Subtle holographic tilt on the HUD panels themselves, easing
+            // toward the cursor — the UI, not just the backdrop, feels 3D.
+            tiltX += (mouseY * -1.6 - tiltX) * 0.06;
+            tiltY += (mouseX * 1.6 - tiltY) * 0.06;
+            for (var t = 0; t < tiltEls.length; t++) {
+                tiltEls[t].style.transform =
+                    'perspective(1400px) rotateX(' + tiltX.toFixed(2) + 'deg) rotateY(' + tiltY.toFixed(2) + 'deg)';
+            }
+
+            renderer.render(scene, camera);
+            rafId = requestAnimationFrame(tick);
+        }
+
+        if (reduceMotion) {
+            renderer.render(scene, camera); // single static frame, no loop
+        } else {
+            tick();
+            document.addEventListener('visibilitychange', function () {
+                if (document.hidden) {
+                    if (rafId) cancelAnimationFrame(rafId);
+                    rafId = null;
+                } else if (!rafId) {
+                    tick();
+                }
+            });
+        }
+    })();
+    </script>
+</body>
+</html>

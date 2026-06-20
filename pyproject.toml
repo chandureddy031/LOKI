@@ -1,0 +1,58 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "loki-cli"
+version = "0.1.0"
+description = "AI-powered code analysis CLI with error detection and chat"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [{ name = "Loki Team" }]
+keywords = ["cli", "code-analysis", "ai", "errors", "linting"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Quality Assurance",
+]
+dependencies = [
+    "click>=8.0",
+    "rich>=13.0",
+    "pylint>=2.0",
+    "astroid>=2.0",
+    "groq>=0.10",
+    "faiss-cpu>=1.7",
+    "sentence-transformers>=2.0",
+    "cryptography>=41.0",
+    "keyring>=24.0",
+    "fastapi>=0.100",
+    "uvicorn>=0.20",
+    "websockets>=12.0",
+    "watchdog>=3.0",
+    "httpx>=0.24",
+]
+
+[project.optional-dependencies]
+openai = ["openai>=1.0"]
+anthropic = ["anthropic>=0.20"]
+dev = ["pytest>=7.0", "pytest-cov>=4.0"]
+
+[project.scripts]
+loki = "loki.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/loki-cli/loki"
+Repository = "https://github.com/loki-cli/loki"
+
+[tool.hatch.build.targets.wheel]
+packages = ["loki"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
