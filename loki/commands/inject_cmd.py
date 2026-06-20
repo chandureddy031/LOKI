@@ -1,7 +1,6 @@
 """loki inject command - inject error capture into Python files."""
 
 import os
-import re
 from pathlib import Path
 from rich.console import Console
 

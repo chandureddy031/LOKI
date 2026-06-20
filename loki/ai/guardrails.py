@@ -65,7 +65,7 @@ class AIGuardrails:
     @classmethod
     def validate_output(cls, ai_output: str) -> str:
         """Filter AI output for safety."""
-        output = re.sub(r"```(?:bash|sh|shell|powershell|cmd).*?```", "```[CODE BLOCK REMOVED]```", output, flags=re.DOTALL)
+        output = re.sub(r"```(?:bash|sh|shell|powershell|cmd).*?```", "```[CODE BLOCK REMOVED]```", ai_output, flags=re.DOTALL)
 
         training_leak_patterns = [
             r"I\s+(?:was|were)\s+trained\s+on",

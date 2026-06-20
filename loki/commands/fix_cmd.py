@@ -64,8 +64,6 @@ def _apply_fix_to_file(file_path: Path, line_num: int, new_code: str) -> bool:
         if line_idx < 0 or line_idx >= len(lines):
             return False
 
-        original_line = lines[line_idx]
-
         new_lines = new_code.split("\n")
 
         lines[line_idx:line_idx + 1] = new_lines

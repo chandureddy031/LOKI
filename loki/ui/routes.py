@@ -1,7 +1,5 @@
 """API routes."""
 
-from pathlib import Path
-
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from ..core.cache import CacheManager
 from ..ai.rag import RAGEngine

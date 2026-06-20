@@ -11,7 +11,7 @@ from rich.console import Console
 from rich.table import Table
 
 from ..core.cache import CacheManager
-from ..core.runtime_capture import setup_runtime_capture, get_runtime_errors, clear_runtime_errors
+from ..core.runtime_capture import setup_runtime_capture, clear_runtime_errors
 
 
 console = Console()
@@ -236,6 +236,6 @@ def execute_capture(command: str = None) -> None:
         with open(save_path, "w") as f:
             json.dump({"errors": errors_list}, f, indent=2)
 
-        console.print(f"\n[green]Errors saved to cache for AI analysis.[/green]")
+        console.print("\n[green]Errors saved to cache for AI analysis.[/green]")
     else:
         console.print("[green]No errors captured.[/green]")

@@ -47,14 +47,7 @@ def init_hook(cache_dir: Path) -> None:
 
 def _patch_except():
     """Patch except clauses to log caught exceptions."""
-    try:
-        import opcode
-        import dis
-
-        original_call = sys.modules.get('builtins')
-
-    except Exception:
-        pass
+    pass
 
 
 def log_exception(exc_type, exc_value, exc_tb, source: str = "caught") -> None:

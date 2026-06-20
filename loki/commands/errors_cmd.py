@@ -50,7 +50,6 @@ def execute_errors(format: str = "table", severity: str = None) -> None:
     if format == "json":
         import json
         from dataclasses import asdict
-        from ..core.types import Error
         print(json.dumps([asdict(e) if hasattr(e, '__dataclass_fields__') else e for e in errors], indent=2))
         return
 

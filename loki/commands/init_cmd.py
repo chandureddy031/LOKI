@@ -65,7 +65,7 @@ def execute_init(path: str = ".") -> None:
         cache.save_errors(errors)
 
     summary = detector.get_summary()
-    console.print(f"\n[green]Scan complete![/green]")
+    console.print("\n[green]Scan complete![/green]")
     console.print(f"Files scanned: {len(scan_result.files)}")
     console.print(f"Errors found: {summary.errors}")
     console.print(f"Warnings: {summary.warnings}")

@@ -27,7 +27,6 @@ def setup_runtime_capture(cache_dir: Path) -> None:
             tb_lines = traceback.format_exception(exc_type, exc_value, exc_tb)
             tb_string = "".join(tb_lines)
 
-            frame = exc_tb.tb_lineno
             filename = exc_tb.tb_frame.f_code.co_filename if exc_tb.tb_frame else "unknown"
 
             error_entry = {
@@ -48,8 +47,6 @@ def setup_runtime_capture(cache_dir: Path) -> None:
         original_excepthook(exc_type, exc_value, exc_tb)
 
     sys.excepthook = capture_excepthook
-
-    original_thread_excepthook = threading.excepthook if hasattr(threading, 'excepthook') else None
 
     def capture_thread_excepthook(args):
         try:
