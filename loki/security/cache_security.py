@@ -26,12 +26,19 @@ class SecureCache:
 
     def _get_or_create_key(self) -> bytes:
         """Get or create encryption key."""
-        key_str = keyring.get_password(self.KEY_SERVICE, self.KEY_NAME)
-        if key_str is None:
-            key = Fernet.generate_key()
+        try:
+            key_str = keyring.get_password(self.KEY_SERVICE, self.KEY_NAME)
+            if key_str is not None:
+                return key_str.encode()
+        except Exception:
+            pass
+
+        key = Fernet.generate_key()
+        try:
             keyring.set_password(self.KEY_SERVICE, self.KEY_NAME, key.decode())
-            return key
-        return key_str.encode()
+        except Exception:
+            pass
+        return key
 
     def save_encrypted(self, filename: str, data: dict) -> None:
         """Save data encrypted to disk."""

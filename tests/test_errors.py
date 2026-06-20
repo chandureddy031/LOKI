@@ -20,4 +20,4 @@ def test_detect_syntax_errors():
         errors = detector.detect_syntax_errors()
 
         assert len(errors) == 1
-        assert errors[0].source == "ast"
+        assert errors[0].source == "python_ast"
