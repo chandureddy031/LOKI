@@ -4,7 +4,7 @@ AI-powered code analysis CLI with error detection, RAG chat, and web UI.
 
 ## Features
 
-- **10 CLI commands** for code analysis
+- **12 CLI commands** for code analysis
 - **AI-powered** error detection and fixes
 - **RAG chat** with your codebase
 - **Web UI** with real-time monitoring
@@ -40,6 +40,18 @@ loki report        # Generate report
 | `loki watch` | Live file monitoring |
 | `loki report` | Generate markdown report |
 | `loki models` | Switch AI providers |
+| `loki capture` | Capture console errors from running processes |
+| `loki inject` | Inject error capture hook into Python files |
+
+## Getting Help
+
+Every command includes detailed help with examples:
+
+```bash
+loki --help           # Show all commands
+loki init --help      # Show help for specific command
+loki errors --help    # Each command has OPTIONS, EXAMPLES, and NOTES
+```
 
 ## Security
 
